@@ -25,9 +25,6 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 ![Dashboard](./assets/screenshots/dashboard.png)
 *Paste text, hit Analyze — findings render as both a 3D claim map and a plain-language summary.*
 
-### Live preview sync
-![Live preview](./assets/screenshots/live-preview.png)
-*The landing page's Live Relation Map shows the most recent dashboard run via `localStorage`.*
 
 > **Note:** Replace the image paths above with your own screenshots. Suggested folder layout:
 > ```
@@ -35,8 +32,7 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 > └── screenshots/
 >     ├── landing-hero.png
 >     ├── landing-full.png
->     ├── dashboard.png
->     └── live-preview.png
+>     └── dashboard.png
 > ```
 
 ---
