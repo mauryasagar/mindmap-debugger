@@ -22,17 +22,9 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 ![Landing page full](./assets/screenshots/landing-full.png)
 *The complete landing page — hero, pipeline explainer, problem section, live preview, architecture.*
 
-### Landing page demo (animated)
-![Landing page demo](./assets/gifs/landing-demo.gif)
-*Full scroll-through of the landing page.*
-
 ### Dashboard
 ![Dashboard](./assets/screenshots/dashboard.png)
 *Paste text, hit Analyze — findings render as both a 3D claim map and a plain-language summary.*
-
-### Dashboard demo (animated)
-![Dashboard demo](./assets/gifs/dashboard-demo.gif)
-*Witness-text example: 3 contradictions + 1 circular chain detected.*
 
 ### Live preview sync
 ![Live preview](./assets/screenshots/live-preview.png)
@@ -41,14 +33,11 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 > **Note:** Replace the image paths above with your own screenshots. Suggested folder layout:
 > ```
 > assets/
-> ├── screenshots/
-> │   ├── landing-hero.png
-> │   ├── landing-full.png
-> │   ├── dashboard.png
-> │   └── live-preview.png
-> └── gifs/
->     ├── landing-demo.gif
->     └── dashboard-demo.gif
+> └── screenshots/
+>     ├── landing-hero.png
+>     ├── landing-full.png
+>     ├── dashboard.png
+>     └── live-preview.png
 > ```
 
 ---
@@ -403,8 +392,7 @@ mindmap-debugger/
 │   ├── dashboard.html      # Analysis interface
 │   └── style.css           # Shared design system
 └── assets/
-    ├── screenshots/
-    └── gifs/
+    └── screenshots/
 ```
 
 ---
