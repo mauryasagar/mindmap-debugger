@@ -19,8 +19,7 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 *Interactive 3D claim constellation in the hero, plus a full pipeline walkthrough below.*
 
 ### Landing page (full)
-![Landing page full](./assets/screenshots/landing-full.png)
-*The complete landing page — hero, pipeline explainer, problem section, live preview, architecture.*
+[View the complete landing page screenshot →](./assets/screenshots/landing-full.png)
 
 ### Dashboard
 ![Dashboard](./assets/screenshots/dashboard.png)
