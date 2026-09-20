@@ -26,15 +26,6 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 *Paste text, hit Analyze — findings render as both a 3D claim map and a plain-language summary.*
 
 
-> **Note:** Replace the image paths above with your own screenshots. Suggested folder layout:
-> ```
-> assets/
-> └── screenshots/
->     ├── landing-hero.png
->     ├── landing-full.png
->     └── dashboard.png
-> ```
-
 ---
 
 ## Build log
