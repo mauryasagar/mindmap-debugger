@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MindMap Debugger — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="stylesheet" href="style.css?v=8">
+</head>
+<body class="grid-bg">
+
+  <div class="ambient-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="grain"></div>
+  <canvas id="particles"></canvas>
+
+  <nav class="site-nav">
+    <div class="max-w-6xl mx-auto px-6 h-[68px] flex items-center justify-between relative z-10">
+      <a href="landing.html" class="flex items-center gap-2.5" aria-label="Back to landing page">
+        <svg class="brand-mark" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 16 6 9M16 16l11-4M16 16v11M16 16 7 23" stroke="#ffffff" stroke-width="1.3" opacity=".85"/>
+          <circle cx="16" cy="16" r="4.4" fill="#ffffff"/>
+          <circle cx="6" cy="9" r="2.6" fill="#ffffff"/>
+          <circle cx="27" cy="12" r="2.6" fill="#ffffff"/>
+          <circle cx="16" cy="27" r="2.6" fill="#ffffff"/>
+          <circle cx="7" cy="23" r="2.6" fill="#ffffff"/>
+        </svg>
+        <span class="brand-wordmark font-display font-semibold text-white">MindMap Debugger</span>
+      </a>
+      <span class="font-mono text-[11px] text-[#8B949E] hidden md:inline">consensus extraction · Groq · Cedar-gated</span>
+      <a href="landing.html" class="nav-cta">← Back to site</a>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-6 pb-28 pt-12 relative z-10">
+    <span class="section-kicker">DASHBOARD · LIVE ANALYSIS</span>
+    <h1 class="font-display text-2xl font-semibold mb-1 tracking-tight">Run an analysis</h1>
+    <p class="text-[13.5px] text-[#8B949E] mb-6">Paste text below. Contradictions and circular reasoning will surface as findings.</p>
+
+    <div class="node-card p-5">
+      <textarea id="input-text" rows="7" placeholder="Paste an argument, meeting transcript, or design doc here…" class="w-full bg-transparent text-[14px] leading-relaxed resize-none text-[#E6EDF3] font-mono"></textarea>
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-[#22293380]">
+        <span id="char-count" class="font-mono text-[11px] text-[#8B949E]">0 characters</span>
+        <button id="analyze-btn" class="btn-primary font-mono text-[13px] font-medium rounded-md px-5 py-2.5">
+          Analyze
+        </button>
+      </div>
+    </div>
+
+    <div id="loading-state" class="hidden mt-6 node-card p-5">
+      <div class="loader-bar rounded-full mb-4"></div>
+      <p class="font-mono text-[12px] text-[#8B949E]">
+        <span class="pulse-dot">●</span> extracting claims → checking relations → gating on confidence…
+      </p>
+    </div>
+
+    <div id="error-state" class="hidden mt-6 node-card p-5 border-[#F8514940]">
+      <p class="font-mono text-[13px] text-[#FF8A85]">Analysis failed.</p>
+      <p id="error-detail" class="text-[13px] text-[#8B949E] mt-1">The tool couldn't reach the analysis endpoint. Check that the server is running and try again.</p>
+    </div>
+
+    <div id="empty-state" class="mt-6 node-card p-10 text-center">
+      <p class="font-mono text-[13px] text-[#8B949E]">Nothing analyzed yet — paste some text above and hit Analyze.</p>
+    </div>
+
+    <div id="results-state" class="hidden mt-6">
+      <div class="node-card p-4 mb-5 flex items-start gap-3">
+        <span class="text-[18px] leading-none">💡</span>
+        <p class="text-[13px] text-[#C9D1D9] leading-relaxed">
+          <b class="text-white">Contradiction</b> = two things that were said which can't both be true.
+          <b class="text-white">Circular reasoning</b> = a chain of claims that loops back and ends up using itself as its own proof.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-6 mb-5">
+        <div>
+          <div class="stat-num text-2xl text-[#FF8A85]" id="contra-num">0</div>
+          <div class="font-mono text-[10.5px] text-[#8B949E]">contradictions found</div>
+        </div>
+        <div class="w-px h-8 bg-[#2A313D]"></div>
+        <div>
+          <div class="stat-num text-2xl text-[#FFC107]" id="circ-num">0</div>
+          <div class="font-mono text-[10.5px] text-[#8B949E]">circular chains found</div>
+        </div>
+        <div class="ml-auto flex gap-1 border border-[#2A313D] rounded-md p-1">
+          <button id="view-graph" class="view-toggle-btn active font-mono text-[11px] px-3 py-1.5 rounded">Graph</button>
+          <button id="view-list" class="view-toggle-btn font-mono text-[11px] px-3 py-1.5 rounded">List</button>
+        </div>
+      </div>
+
+      <div id="graph-view">
+        <div class="preview-grid">
+          <div class="node-card graph-preview graph-preview-card">
+            <div class="gp-flare gp-flare-blue"></div>
+            <div class="gp-flare gp-flare-amber"></div>
+            <div class="graph-toolbar">
+              <span class="graph-title font-mono">CLAIM CONSTELLATION · DRAG TO ROTATE · HOVER A DOT</span>
+              <div class="graph-legend font-mono" aria-label="Graph relation legend">
+                <span><i class="legend-dot legend-support"></i>claim</span>
+                <span><i class="legend-dot legend-contradiction"></i>contradiction</span>
+                <span><i class="legend-dot legend-circular"></i>circular</span>
+              </div>
+            </div>
+            <div class="graph-3d-wrap">
+              <canvas id="findings-graph-3d" aria-label="Interactive three dimensional graph of findings" style="opacity:0;background:transparent;transition:opacity .5s ease"></canvas>
+              <div id="graph-labels" class="graph-labels-wrap"></div>
+              <div id="graph-tooltip" class="graph-tooltip"></div>
+            </div>
+            <div class="graph-footer">
+              <span><b id="node-count">0</b> claims mapped</span>
+              <span><b id="edge-count">0</b> relations found</span>
+              <span class="graph-live" id="graph-live-tag"><i></i> live result</span>
+            </div>
+          </div>
+
+          <aside class="preview-summary" id="dash-summary">
+            <div class="preview-summary-head">
+              <span class="preview-summary-title">Summary</span>
+              <span class="preview-summary-src font-mono">LIVE</span>
+            </div>
+            <p class="preview-summary-sub">A plain-language breakdown of what this analysis found.</p>
+            <div class="preview-stat-row">
+              <div>
+                <div class="preview-stat-num red" id="dash-contra-count">0</div>
+                <div class="preview-stat-label">contradictions</div>
+              </div>
+              <div>
+                <div class="preview-stat-num amber" id="dash-circ-count">0</div>
+                <div class="preview-stat-label">circular chains</div>
+              </div>
+            </div>
+            <div class="preview-finding-list" id="dash-finding-list"></div>
+          </aside>
+        </div>
+      </div>
+
+      <div id="list-view" class="hidden grid gap-3"></div>
+    </div>
+  </main>
+
+  <footer id="about" class="site-footer relative z-10">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="flex items-center gap-2.5">
+            <svg class="brand-mark" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <path d="M16 16 6 9M16 16l11-4M16 16v11M16 16 7 23" stroke="#ffffff" stroke-width="1.3" opacity=".85"/>
+              <circle cx="16" cy="16" r="4" fill="#ffffff"/>
+              <circle cx="6" cy="9" r="2.3" fill="#ffffff"/>
+              <circle cx="27" cy="12" r="2.3" fill="#ffffff"/>
+              <circle cx="16" cy="27" r="2.3" fill="#ffffff"/>
+              <circle cx="7" cy="23" r="2.3" fill="#ffffff"/>
+            </svg>
+            <span class="brand-wordmark font-display font-semibold text-white">MindMap Debugger</span>
+          </div>
+          <p>A contradiction and circular-reasoning detector for anything with claims in it — transcripts, arguments, design docs.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="landing.html#top">Home</a>
+          <a href="landing.html#how">How it works</a>
+          <a href="dashboard.html">Open dashboard</a>
+        </div>
+        <div class="footer-col">
+          <h4>Project</h4>
+          <a href="https://wemakedevs.org/aws/first-commit" target="_blank" rel="noopener">AWS First Commit</a>
+          <a href="landing.html#preview">System Status</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MindMap Debugger — built for WeMakeDevs × AWS First Commit</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Nav ---- */
+  (function(){
+    const nav = document.querySelector('.site-nav');
+    if(!nav) return;
+    const onScroll = () => {
+      if(window.scrollY > 40) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+
+  /* ---- Cursor-following border glow on dashboard cards ---- */
+  (function(){
+    const getCards = () => document.querySelectorAll('main > .node-card, #results-state > .node-card');
+    document.addEventListener('mousemove', (e) => {
+      getCards().forEach(card => {
+        const r = card.getBoundingClientRect();
+        const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+        const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+        const near = dx <= 60 && dy <= 60;
+        if(near){
+          card.classList.add('glow-active');
+          card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+          card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        } else {
+          card.classList.remove('glow-active');
+        }
+      });
+    }, { passive: true });
+  })();
+
+  /* ---- Particle background ---- */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  const colors = ['#8B949E', '#58A6FF', '#8B949E'];
+  function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = document.body.scrollHeight; }
+  function initParticles(){
+    const count = Math.floor((canvas.width * canvas.height) / 90000);
+    particles = Array.from({length: Math.min(count, 70)}, () => ({
+      x: Math.random()*canvas.width, y: Math.random()*canvas.height,
+      r: Math.random()*1.6+0.6, vx:(Math.random()-0.5)*0.15, vy:(Math.random()-0.5)*0.15,
+      color: colors[Math.floor(Math.random()*colors.length)], alpha: Math.random()*0.35+0.15
+    }));
+  }
+  function drawParticles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>canvas.width) p.vx*=-1;
+      if(p.y<0||p.y>canvas.height) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.globalAlpha=p.alpha; ctx.fill();
+    });
+    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<110){
+        ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle='#8B949E'; ctx.globalAlpha=(1-dist/110)*0.12; ctx.lineWidth=0.6; ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(drawParticles);
+  }
+  if(!prefersReduced){
+    resizeCanvas(); initParticles(); drawParticles();
+    window.addEventListener('resize', ()=>{ resizeCanvas(); initParticles(); });
+  }
+
+  /* ---- Tool wiring ---- */
+  const textarea = document.getElementById('input-text');
+  const charCount = document.getElementById('char-count');
+  const analyzeBtn = document.getElementById('analyze-btn');
+  const loadingState = document.getElementById('loading-state');
+  const errorState = document.getElementById('error-state');
+  const errorDetail = document.getElementById('error-detail');
+  const emptyState = document.getElementById('empty-state');
+  const resultsState = document.getElementById('results-state');
+  const contraNum = document.getElementById('contra-num');
+  const circNum = document.getElementById('circ-num');
+  const graphView = document.getElementById('graph-view');
+  const listView = document.getElementById('list-view');
+  const viewGraphBtn = document.getElementById('view-graph');
+  const viewListBtn = document.getElementById('view-list');
+  const nodeCountEl = document.getElementById('node-count');
+  const edgeCountEl = document.getElementById('edge-count');
+  const tooltip = document.getElementById('graph-tooltip');
+  const labelWrap = document.getElementById('graph-labels');
+  const dashContra = document.getElementById('dash-contra-count');
+  const dashCirc = document.getElementById('dash-circ-count');
+  const dashList = document.getElementById('dash-finding-list');
+
+  textarea.addEventListener('input', () => { charCount.textContent = `${textarea.value.length} characters`; });
+
+  function showState(state){
+    [loadingState, errorState, emptyState, resultsState].forEach(el => el.classList.add('hidden'));
+    state.classList.remove('hidden');
+  }
+  function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  viewGraphBtn.addEventListener('click', () => {
+    viewGraphBtn.classList.add('active'); viewListBtn.classList.remove('active');
+    graphView.classList.remove('hidden'); listView.classList.add('hidden');
+    requestAnimationFrame(() => graph3d && graph3d.resize && graph3d.resize());
+  });
+  viewListBtn.addEventListener('click', () => {
+    viewListBtn.classList.add('active'); viewGraphBtn.classList.remove('active');
+    listView.classList.remove('hidden'); graphView.classList.add('hidden');
+  });
+
+  function hashStr(s){
+    let h = 0;
+    for(let i = 0; i < s.length; i++){ h = ((h<<5) - h) + s.charCodeAt(i); h |= 0; }
+    return Math.abs(h);
+  }
+  function prng(seed){
+    let s = (seed || 1) >>> 0;
+    return function(){
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 0xFFFFFFFF;
+    };
+  }
+
+  /* ---- 3D claim constellation ---- */
+  let graph3d = null;
+
+  function initGraph3D(){
+    if(graph3d || !window.THREE) return;
+    const canvas = document.getElementById('findings-graph-3d');
+    if(!canvas) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.6);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    scene.add(new THREE.AmbientLight(0x4a3b1a, 1.6));
+    const keyLight = new THREE.PointLight(0xffb830, 3.2, 14);
+    keyLight.position.set(-2, 3, 5);
+    scene.add(keyLight);
+    const rimLight = new THREE.PointLight(0xffd54f, 2.4, 12);
+    rimLight.position.set(3, -2.5, 4);
+    scene.add(rimLight);
+    const coreLight = new THREE.PointLight(0xff9800, 2.0, 8);
+    coreLight.position.set(0, 0, 0);
+    scene.add(coreLight);
+
+    const field = new THREE.Group();
+    scene.add(field);
+
+    let dragging = false, lastX = 0, lastY = 0;
+    let userRotY = 0, userRotX = 0;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointerup', () => { dragging = false; });
+    canvas.addEventListener('pointerleave', () => { dragging = false; tooltip.style.opacity = 0; });
+    canvas.addEventListener('pointermove', (e) => {
+      if(dragging){
+        userRotY += (e.clientX - lastX) * 0.006;
+        userRotX += (e.clientY - lastY) * 0.006;
+        userRotX = Math.max(-0.9, Math.min(0.9, userRotX));
+        lastX = e.clientX; lastY = e.clientY;
+      }
+      handleHover(e);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let nodeMeshes = [], edgeLines = [], hovered = null, ambientRef = null;
+
+    function handleHover(e){
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(nodeMeshes.map(n => n.mesh));
+      if(hits.length){
+        const hit = nodeMeshes.find(n => n.mesh === hits[0].object);
+        if(hovered !== hit){ hovered = hit; canvas.style.cursor = 'pointer'; }
+        tooltip.textContent = hit.label;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+        tooltip.style.top = (e.clientY - rect.top + 10) + 'px';
+      } else {
+        if(hovered){ hovered = null; canvas.style.cursor = 'grab'; }
+        tooltip.style.opacity = 0;
+      }
+    }
+
+    function resize(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if(!w || !h) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+    window.addEventListener('resize', resize);
+
+    const clock = new THREE.Clock();
+    function tick(){
+      const t = clock.getElapsedTime();
+
+      field.rotation.y = userRotY;
+      field.rotation.x = userRotX;
+
+      nodeMeshes.forEach(n => {
+        const isHovered = hovered === n;
+        const pulse = Math.sin(t * 2.0 + n.phase) * 0.5 + 0.5;
+        const baseIntensity = n.isHub ? 0.7 : 0.35;
+        const targetIntensity = isHovered ? 1.25 : baseIntensity + pulse * 0.4;
+        n.mesh.material.emissiveIntensity += (targetIntensity - n.mesh.material.emissiveIntensity) * 0.15;
+
+        const targetScale = isHovered ? n.baseScale * 1.6 : n.baseScale;
+        n.mesh.scale.setScalar(n.mesh.scale.x + (targetScale - n.mesh.scale.x) * 0.15);
+
+        n.mesh.position.x = n.basePos.x + Math.sin(t * n.speed + n.phase) * 0.08;
+        n.mesh.position.y = n.basePos.y + Math.cos(t * n.speed * 0.9 + n.phase) * 0.08;
+        n.mesh.position.z = n.basePos.z + Math.sin(t * n.speed * 0.7 + n.phase) * 0.06;
+
+        if(n.labelEl){
+          const vec = n.mesh.getWorldPosition(new THREE.Vector3()).project(camera);
+          const rect = canvas.getBoundingClientRect();
+          const x = (vec.x * 0.5 + 0.5) * rect.width;
+          const y = (-vec.y * 0.5 + 0.5) * rect.height;
+          const behind = vec.z > 1;
+          n.labelEl.style.transform = `translate(${x + 10}px, ${y - 8}px)`;
+          if(behind){ n.labelEl.style.opacity = 0; }
+          else if(n.isHub){ n.labelEl.style.opacity = isHovered ? 1 : 0.85; }
+          else { n.labelEl.style.opacity = isHovered ? 1 : 0; }
+          n.labelEl.classList.toggle('graph-node-label-hot', isHovered);
+        }
+      });
+
+      if(ambientRef){
+        const posAttr = ambientRef.geo.attributes.position;
+        const colAttr = ambientRef.geo.attributes.color;
+        let ptr = 0;
+        ambientRef.pairs.forEach(pair => {
+          const p1 = nodeMeshes[pair.i].mesh.position;
+          const p2 = nodeMeshes[pair.j].mesh.position;
+          const d = p1.distanceTo(p2);
+          const alpha = Math.max(0.06, 1 - d / 1.35);
+          posAttr.array[ptr*6]     = p1.x; posAttr.array[ptr*6+1] = p1.y; posAttr.array[ptr*6+2] = p1.z;
+          posAttr.array[ptr*6+3]   = p2.x; posAttr.array[ptr*6+4] = p2.y; posAttr.array[ptr*6+5] = p2.z;
+          colAttr.array[ptr*6]     = 1.0 * alpha; colAttr.array[ptr*6+1] = 0.78 * alpha; colAttr.array[ptr*6+2] = 0.22 * alpha;
+          colAttr.array[ptr*6+3]   = 1.0 * alpha; colAttr.array[ptr*6+4] = 0.72 * alpha; colAttr.array[ptr*6+5] = 0.18 * alpha;
+          ptr++;
+        });
+        posAttr.needsUpdate = true;
+        colAttr.needsUpdate = true;
+      }
+
+      edgeLines.forEach(l => {
+        const involved = hovered && (l.a === hovered || l.b === hovered);
+        const target = involved ? 1.0 : l.baseOpacity;
+        l.mat.opacity += (target - l.mat.opacity) * 0.15;
+      });
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    graph3d = { scene, field, camera, renderer, resize };
+
+    graph3d.update = function(findings, propositions){
+      while(field.children.length) field.remove(field.children[0]);
+      nodeMeshes = []; edgeLines = []; hovered = null; ambientRef = null;
+      labelWrap.innerHTML = '';
+
+      const props = propositions || [];
+
+      const hubTexts = new Set();
+      findings.forEach(f => (f.claims || []).forEach(c => hubTexts.add(c)));
+
+      const textToIndex = new Map();
+      props.forEach((p, i) => textToIndex.set(p.text, i));
+
+      const nodeSource = props.length ? props : (() => {
+        const seen = new Set();
+        const arr = [];
+        findings.forEach(f => (f.claims || []).forEach(c => {
+          if(!seen.has(c)){ seen.add(c); arr.push({ id: c, text: c }); }
+        }));
+        return arr;
+      })();
+
+      const radius = 2.6;
+      const positions = nodeSource.map((p, i) => {
+        const seed = hashStr((p.id || '') + (p.text || '') + i);
+        const rnd = prng(seed);
+        const u = rnd(), v = rnd();
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const r = Math.cbrt(rnd()) * radius;
+        return new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta) * 1.05,
+          r * Math.sin(phi) * Math.sin(theta) * 0.95,
+          r * Math.cos(phi) * 1.1
+        );
+      });
+
+      [[radius*0.92, 0xffb830, 0], [radius*0.75, 0xffd54f, Math.PI/4]].forEach(([r,color,rot]) => {
+        const ringGeo = new THREE.RingGeometry(r-0.004, r, 96);
+        const ringMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.06, side:THREE.DoubleSide });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI/2.3;
+        ring.rotation.z = rot;
+        field.add(ring);
+      });
+
+      const dustGeo = new THREE.SphereGeometry(1, 8, 8);
+      const dustRnd = prng(hashStr('dust-seed'));
+      for(let i = 0; i < 40; i++){
+        const u = dustRnd(), v = dustRnd();
+        const theta = u * 2 * Math.PI;
+        const phi = Math.acos(2 * v - 1);
+        const r = 2.2 + dustRnd() * 1.4;
+        const dustMat = new THREE.MeshBasicMaterial({ color: 0xffe082, transparent: true, opacity: 0.10 });
+        const dust = new THREE.Mesh(dustGeo, dustMat);
+        dust.scale.setScalar(0.02 + dustRnd() * 0.025);
+        dust.position.set(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.sin(phi) * Math.sin(theta),
+          r * Math.cos(phi)
+        );
+        field.add(dust);
+      }
+
+      const nodeGeo = new THREE.SphereGeometry(1, 20, 20);
+      const goldPalette = [0xffd700, 0xffc107, 0xffb300, 0xffa000, 0xffca28, 0xffe082];
+      nodeSource.forEach((p, i) => {
+        const isHub = hubTexts.has(p.text);
+        const baseScale = isHub ? (0.13 + (hashStr(p.id || p.text) % 5) * 0.008) : (0.05 + (hashStr(p.text) % 5) * 0.008);
+        const color = isHub ? 0xffd700 : goldPalette[i % goldPalette.length];
+
+        const mat = new THREE.MeshPhongMaterial({
+          color, emissive: color,
+          emissiveIntensity: isHub ? 0.85 : 0.45,
+          shininess: 95
+        });
+        const mesh = new THREE.Mesh(nodeGeo, mat);
+        mesh.scale.setScalar(baseScale);
+        mesh.position.copy(positions[i]);
+        field.add(mesh);
+
+        if(isHub){
+          const haloMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.22 });
+          const halo = new THREE.Mesh(nodeGeo, haloMat);
+          halo.scale.setScalar(2.4);
+          mesh.add(halo);
+        }
+
+        const short = p.text.length > 42 ? p.text.slice(0, 40) + '…' : p.text;
+        const labelEl = document.createElement('div');
+        labelEl.className = 'graph-node-label' + (isHub ? '' : ' graph-node-label-ambient');
+        labelEl.textContent = `${i + 1}. ${short}`;
+        labelWrap.appendChild(labelEl);
+
+        nodeMeshes.push({
+          mesh, label: p.text, labelEl,
+          phase: (hashStr(p.text) % 1000) / 1000 * Math.PI * 2,
+          speed: 0.8 + (hashStr(p.text) % 100) / 100 * 0.8,
+          basePos: positions[i].clone(),
+          baseScale, isHub
+        });
+      });
+
+      const MAX_DIST = 1.35;
+      const ambientPairs = [];
+      for(let i = 0; i < positions.length; i++){
+        for(let j = i + 1; j < positions.length; j++){
+          const d = positions[i].distanceTo(positions[j]);
+          if(d < MAX_DIST) ambientPairs.push({ i, j, d });
+        }
+      }
+      if(ambientPairs.length){
+        const geoAmb = new THREE.BufferGeometry();
+        const posArr = new Float32Array(ambientPairs.length * 6);
+        const colArr = new Float32Array(ambientPairs.length * 6);
+        geoAmb.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+        geoAmb.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+        const matAmb = new THREE.LineBasicMaterial({
+          vertexColors: true, transparent: true, opacity: 0.28,
+          blending: THREE.AdditiveBlending
+        });
+        const segAmb = new THREE.LineSegments(geoAmb, matAmb);
+        field.add(segAmb);
+        ambientRef = { geo: geoAmb, pairs: ambientPairs };
+      }
+
+      findings.forEach(f => {
+        const claims = f.claims || [];
+        const isContra = f.type === 'direct_contradiction';
+        for(let i = 0; i < claims.length; i++){
+          for(let j = i+1; j < claims.length; j++){
+            const ai = textToIndex.get(claims[i]);
+            const bi = textToIndex.get(claims[j]);
+            if(ai == null || bi == null) continue;
+            const a = positions[ai], b = positions[bi];
+            const mid = a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0, 0.4));
+            const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
+            const baseOpacity = isContra ? 0.9 : 0.6;
+            let mat, line;
+            if(isContra){
+              mat = new THREE.LineDashedMaterial({
+                color: 0xf85149, dashSize:0.1, gapSize:0.08,
+                transparent:true, opacity:baseOpacity, blending:THREE.AdditiveBlending
+              });
+              line = new THREE.Line(lineGeo, mat);
+              line.computeLineDistances();
+            } else {
+              mat = new THREE.LineBasicMaterial({
+                color: 0xffc107, transparent:true, opacity:baseOpacity,
+                blending:THREE.AdditiveBlending
+              });
+              line = new THREE.Line(lineGeo, mat);
+            }
+            field.add(line);
+            edgeLines.push({ mat, baseOpacity, a: nodeMeshes[ai], b: nodeMeshes[bi] });
+          }
+        }
+      });
+
+      nodeCountEl.textContent = nodeSource.length;
+      edgeCountEl.textContent = findings.length;
+
+      resize();
+      canvas.style.cursor = 'grab';
+    };
+
+    resize();
+    renderer.render(scene, camera);
+    canvas.style.opacity = '1';
+    tick();
+  }
+
+  function findingCard(f){
+    const isContra = f.type === 'direct_contradiction';
+    const claims = f.claims || [];
+    const wrap = document.createElement('div');
+    wrap.className = 'node-card p-4 hover-card ' + (isContra ? 'glow-red' : 'glow-amber');
+
+    const plainExplain = isContra
+      ? `These two statements can't both be true at the same time:`
+      : `This reasoning loops back on itself — it ends up using its own conclusion as proof:`;
+
+    const claimsHtml = isContra
+      ? claims.map((c, i) => `
+          <div class="finding-claim">
+            <span class="finding-claim-num">${i === 0 ? 'A' : 'B'}</span>
+            <p class="text-[13.5px] text-[#E6EDF3] leading-snug">${escapeHtml(c)}</p>
+          </div>`).join('<div class="finding-claim-vs">but</div>')
+      : claims.map((c, i) => `
+          <div class="finding-claim">
+            <span class="finding-claim-num">${i + 1}</span>
+            <p class="text-[13.5px] text-[#E6EDF3] leading-snug">${escapeHtml(c)}</p>
+          </div>${i < claims.length - 1 ? '<div class="finding-claim-arrow">↓ leads to</div>' : ''}`).join('');
+
+    const badgeIcon = isContra
+      ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>'
+      : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+
+    wrap.innerHTML = `
+      <div class="flex items-center gap-2 mb-2.5">
+        <span class="badge ${isContra ? 'badge-contra' : 'badge-circ'}">${badgeIcon}<span>${isContra ? 'CONTRADICTION' : 'CIRCULAR REASONING'}</span></span>
+        <span class="font-mono text-[10.5px] text-[#8B949E] ml-auto">${Math.round((f.confidence ?? 0) * 100)}% sure</span>
+      </div>
+      <p class="text-[12px] text-[#8B949E] mb-3">${plainExplain}</p>
+      <div class="grid gap-1">${claimsHtml}</div>`;
+    return wrap;
+  }
+
+  function renderSummary(findings){
+    const contras = findings.filter(f => f.type === 'direct_contradiction');
+    const circs = findings.filter(f => f.type === 'circular');
+    dashContra.textContent = contras.length;
+    dashCirc.textContent = circs.length;
+
+    if(findings.length === 0){
+      dashList.innerHTML = '<div class="preview-empty">No findings to summarize.</div>';
+      return;
+    }
+    dashList.innerHTML = findings.slice(0, 6).map(f => {
+      const isContra = f.type === 'direct_contradiction';
+      const cs = f.claims || [];
+      const conf = Math.round((f.confidence || 0) * 100);
+      const title = isContra ? 'CONTRADICTION' : 'CIRCULAR REASONING';
+      const body = isContra
+        ? cs.map(escapeHtml).join(' <em>but</em> ')
+        : cs.map(escapeHtml).join(' <span class="arrow">→</span> ');
+      return `<div class="preview-finding ${isContra ? 'contra' : 'circ'}">
+        <div class="preview-finding-title">${title} · ${conf}% sure</div>
+        <div class="preview-finding-body">${body}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderGraph(findings, propositions){
+    initGraph3D();
+    if(graph3d) graph3d.update(findings, propositions);
+  }
+
+  async function analyze(){
+    const text = textarea.value.trim();
+    if(!text) return;
+    showState(loadingState);
+    analyzeBtn.disabled = true;
+
+    try {
+      const res = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if(!res.ok) throw new Error(`Server returned ${res.status}`);
+      const data = await res.json();
+      const findings = data.findings || [];
+      const propositions = data.propositions || [];
+
+      if(findings.length === 0){
+        showState(emptyState);
+        emptyState.querySelector('p').textContent = 'No contradictions or circular reasoning found in this text.';
+        return;
+      }
+
+      const contras = findings.filter(f => f.type === 'direct_contradiction');
+      const circs = findings.filter(f => f.type === 'circular');
+      contraNum.textContent = contras.length;
+      circNum.textContent = circs.length;
+
+      listView.innerHTML = '';
+      findings.forEach(f => listView.appendChild(findingCard(f)));
+
+      renderSummary(findings);
+      showState(resultsState);
+
+      requestAnimationFrame(() => renderGraph(findings, propositions));
+
+      try {
+        localStorage.setItem('mindmap_last_analysis', JSON.stringify({
+          findings, propositions, ts: Date.now()
+        }));
+      } catch(e){ /* non-fatal */ }
+
+      if(!prefersReduced){
+        gsap.from('#list-view > *', { opacity:0, y:10, duration:0.4, stagger:0.08, ease:'power2.out' });
+      }
+    } catch(err){
+      errorDetail.textContent = err.message || "The tool couldn't reach the analysis endpoint.";
+      showState(errorState);
+    } finally {
+      analyzeBtn.disabled = false;
+    }
+  }
+
+  textarea.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      analyze();
+    }
+  });
+
+  analyzeBtn.addEventListener('click', analyze);
+</script>
+</body>
+</html>

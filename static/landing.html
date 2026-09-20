@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MindMap Debugger — find the contradiction before someone else does</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="stylesheet" href="style.css?v=8">
+</head>
+<body id="top" class="grid-bg">
+
+  <div class="ambient-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="grain"></div>
+  <canvas id="particles"></canvas>
+
+  <nav class="site-nav">
+    <div class="max-w-6xl mx-auto px-6 h-[68px] flex items-center justify-between relative z-10">
+      <a href="#top" class="flex items-center gap-2.5" aria-label="Back to top">
+        <svg class="brand-mark" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 16 6 9M16 16l11-4M16 16v11M16 16 7 23" stroke="#ffffff" stroke-width="1.3" opacity=".85"/>
+          <circle cx="16" cy="16" r="4.4" fill="#ffffff"/>
+          <circle cx="6" cy="9" r="2.6" fill="#ffffff"/>
+          <circle cx="27" cy="12" r="2.6" fill="#ffffff"/>
+          <circle cx="16" cy="27" r="2.6" fill="#ffffff"/>
+          <circle cx="7" cy="23" r="2.6" fill="#ffffff"/>
+        </svg>
+        <span class="brand-wordmark font-display font-semibold text-white">MindMap Debugger</span>
+      </a>
+      <div class="site-nav-links font-mono hidden md:flex">
+        <a href="#how" class="site-nav-link">How it works</a>
+        <a href="#preview" class="site-nav-link">Live preview</a>
+        <a href="#stack" class="site-nav-link">Architecture</a>
+      </div>
+      <a href="dashboard.html" class="nav-cta">Open dashboard →</a>
+    </div>
+  </nav>
+
+  <header id="home" class="max-w-6xl mx-auto px-6 pt-16 pb-24 grid md:grid-cols-2 gap-14 items-center relative z-10">
+    <div>
+      <span class="section-kicker">WEMAKEDEVS × AWS FIRST COMMIT · REASONING ENGINE</span>
+      <h1 class="font-display text-[46px] leading-[1.08] font-semibold tracking-tight">
+        Two claims can both<br/>sound true.<br/>
+        <span>Only one can be.</span>
+      </h1>
+      <p class="mt-6 text-[15.5px] leading-relaxed text-[#a3a5aa] max-w-md">
+        Paste an argument, a transcript, a design doc — anything with claims in it.
+        MindMap Debugger extracts every proposition, maps how they relate, and flags
+        where they contradict each other or loop back in circular reasoning.
+      </p>
+      <div class="mt-8 flex items-center gap-4 flex-wrap">
+        <a href="dashboard.html" class="btn-primary font-mono text-[13px] px-6 py-3.5 inline-block">
+          Try it on your text
+        </a>
+        <a href="#how" class="btn-ghost font-mono text-[13px] px-6 py-3.5 inline-block">
+          See how it works
+        </a>
+      </div>
+      <p class="mt-5 font-mono text-[11.5px] text-[#7f858c]">No signup · runs in seconds · nothing stored on a server</p>
+    </div>
+
+    <div class="hero-visual">
+      <canvas id="hero-canvas" aria-label="Autonomous 3D golden plexus graph" style="opacity:0;background:transparent;transition:opacity .5s ease"></canvas>
+      <span class="hero-hint">✦ MOVE CURSOR TO ROTATE IN 3D · DRAG TO EXPLORE</span>
+    </div>
+  </header>
+
+  <section id="how" class="max-w-6xl mx-auto px-6 pb-24 relative z-10">
+    <span class="section-kicker reveal">THE PIPELINE</span>
+    <h2 class="font-display text-2xl md:text-3xl font-semibold mb-10 text-white reveal">How it works</h2>
+
+    <div class="grid md:grid-cols-3 gap-10">
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-purple p-4">
+          <div class="w-[88%] bg-[#0f1017]/90 border border-white/10 rounded-xl p-3.5 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center justify-between mb-2 pb-1 border-b border-white/5">
+              <div class="text-[11px] font-semibold text-white font-mono">Consensus Extraction (3×)</div>
+              <div class="flex gap-1 opacity-60">
+                <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+              </div>
+            </div>
+            <div class="space-y-1.5 font-sans">
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.03] text-[11px] text-[#9a9fa8]">
+                <span>Pass 1 · Groq 120b</span>
+              </div>
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-[#9333ea]/35 to-[#a855f7]/20 border border-[#c084fc]/50 text-[11px] text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">Consensus Merge · 98% Match</span>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="white" class="text-white drop-shadow-md"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+              </div>
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.03] text-[11px] text-[#9a9fa8]">
+                <span>Pass 3 · Groq 120b</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 mt-4">
+          <span class="step-num">1</span>
+          <h3 class="font-display font-medium text-lg text-white">Extract claims</h3>
+        </div>
+        <p class="bento-card-desc mt-2">The model reads your text three times and merges the results, so a single noisy pass can't skew what gets flagged.</p>
+        <span class="font-mono text-[11px] text-[#7f858c] mt-4 pt-2 border-t border-white/5">CONSENSUS EXTRACTION</span>
+      </div>
+
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-cyan p-4 flex-col gap-2">
+          <div class="w-[84%] flex flex-col items-center font-sans">
+            <div class="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f121a]/90 border border-white/10 text-[11px] text-[#9ba3b0]">
+              <span class="text-cyan-400">⚡</span>
+              <span>Claim A (Proposition)</span>
+            </div>
+            <div class="relative w-px h-4 bg-cyan-400/80 flex items-center justify-center">
+              <span class="w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_8px_#22d3ee]"></span>
+            </div>
+            <div class="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-950/70 to-[#082f49]/80 border border-cyan-400/60 text-[11px] text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+              <span class="text-cyan-300">⇄</span>
+              <span class="font-medium">Relation: Contradicts</span>
+            </div>
+            <div class="w-px h-4 bg-white/15"></div>
+            <div class="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0f121a]/90 border border-white/10 text-[11px] text-[#9ba3b0]">
+              <span class="text-[#9ba3b0]">⚡</span>
+              <span>Claim B (Proposition)</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 mt-4">
+          <span class="step-num">2</span>
+          <h3 class="font-display font-medium text-lg text-white">Map relations</h3>
+        </div>
+        <p class="bento-card-desc mt-2">Claims get connected by how they relate — supports, depends on, contradicts — and the graph is checked for direct conflicts and closed loops.</p>
+        <span class="font-mono text-[11px] text-[#7f858c] mt-4 pt-2 border-t border-white/5">GRAPH ANALYSIS</span>
+      </div>
+
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-amber p-4 relative">
+          <div class="w-[84%] bg-[#121110]/90 border border-white/10 rounded-xl p-3 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/5 text-[10px] font-mono text-amber-300">
+              <span>CEDAR POLICY EVALUATION</span>
+              <span>v2.4</span>
+            </div>
+            <div class="space-y-1 text-[11px] text-[#aba49c]">
+              <div class="flex items-center justify-between px-2 py-1 rounded bg-white/[0.03]">
+                <span>Contradiction</span>
+                <span class="text-emerald-400 font-mono text-[10px]">ALWAYS SURFACE</span>
+              </div>
+              <div class="flex items-center justify-between px-2 py-1 rounded bg-white/[0.03]">
+                <span>Circular Reasoning</span>
+                <span class="text-amber-300 font-mono text-[10px]">CONF > 0.6</span>
+              </div>
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600/40 to-amber-500/25 border border-amber-400/50 text-amber-100 shadow-[0_0_14px_rgba(245,158,11,0.3)] font-medium mt-1">
+                <span>Decision: Permit Finding</span>
+                <span class="text-[10px]">✓</span>
+              </div>
+            </div>
+          </div>
+          <div class="absolute bottom-2.5 right-4 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#d97706] to-[#b45309] text-[9.5px] font-medium text-white shadow-lg border border-amber-300/30">
+            Cedar Policy Gate
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 mt-4">
+          <span class="step-num">3</span>
+          <h3 class="font-display font-medium text-lg text-white">Gate on confidence</h3>
+        </div>
+        <p class="bento-card-desc mt-2">A policy layer decides what's worth surfacing — contradictions always, circular reasoning only above a confidence threshold.</p>
+        <span class="font-mono text-[11px] text-[#7f858c] mt-4 pt-2 border-t border-white/5">CEDAR POLICY GATE</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="problem" class="max-w-6xl mx-auto px-6 pb-24 relative z-10">
+    <span class="section-kicker reveal">THE PROBLEM</span>
+    <h2 class="font-display text-2xl md:text-3xl font-semibold mb-10 text-white reveal">Reading carefully doesn't scale</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <div class="fb-card-wrap reveal-slow">
+      <div class="fb-card fb-card-blue">
+        <div class="fb-visual">
+          <div class="fb-flare-blue"></div>
+          <div class="fb-flare-blue-dots"></div>
+
+          <div class="fb-inbox">
+            <div class="fb-inbox-head">
+              <div class="fb-inbox-title">
+                <span>Transcript Stream</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="fb-inbox-tools">
+                <span class="tracking-widest font-mono text-[11px] leading-none">•••</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1a.5.5 0 0 0-.6.2L2.5 8.8a.5.5 0 0 0 .1.6l2 1.6a7.6 7.6 0 0 0 0 2l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3a.5.5 0 0 0 .6.2l2.4-1a7 7 0 0 0 1.7 1l.4 2.5a.5.5 0 0 0 .5.4h3.8a.5.5 0 0 0 .5-.4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1a.5.5 0 0 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6l-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+              </div>
+            </div>
+
+            <div class="fb-tabs">
+              <span class="fb-tab">Claims <em class="fb-pill">12</em></span>
+              <span class="fb-tab is-active">Unflagged <em class="fb-pill fb-pill-gold">2</em></span>
+              <span class="fb-tab">10:42 AM</span>
+            </div>
+
+            <div class="fb-rows">
+              <div class="fb-row fb-row-1">
+                <span class="fb-dot"></span>
+                <span class="fb-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1Z"/></svg></span>
+                <div class="fb-row-body">
+                  <span class="fb-row-text">"The Friday deadline is fixed"</span>
+                  <span class="fb-row-bar"></span>
+                </div>
+                <span class="fb-row-time">10:15</span>
+              </div>
+              <div class="fb-row fb-row-2">
+                <span class="fb-dot"></span>
+                <span class="fb-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1Z"/></svg></span>
+                <div class="fb-row-body">
+                  <span class="fb-row-text">"There isn't time to hit it"</span>
+                  <span class="fb-row-bar"></span>
+                </div>
+                <span class="fb-row-time">10:25</span>
+              </div>
+              <div class="fb-row fb-row-3">
+                <span class="fb-dot"></span>
+                <span class="fb-avatar"></span>
+                <div class="fb-row-body">
+                  <span class="fb-row-text">"The Friday deadline is fixed"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fb-copy">
+          <h3 class="fb-title">Where it breaks down</h3>
+          <ul class="problem-list">
+            <li>
+              <span class="problem-marker"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="#d7a86e" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+              <span class="fb-text">A meeting transcript says the deadline is fixed. Ten minutes later, someone says there isn't time to hit it.</span>
+            </li>
+            <li>
+              <span class="problem-marker"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#78a9a2" stroke-width="1.6"/></svg></span>
+              <span class="fb-text">Nobody flags it — everyone was listening for their own part, not tracking the whole argument.</span>
+            </li>
+            <li>
+              <span class="problem-marker"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#8b7ab8" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+              <span class="fb-text">The same thing happens in design docs, contracts, and long debates: claims pile up faster than any one reader can cross-check them.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      </div>
+
+      <div class="fb-card-wrap reveal-slow">
+      <div class="fb-card fb-card-orange">
+        <div class="fb-visual">
+          <div class="fb-flare-orange-glow"></div>
+          <div class="fb-flare-orange-beam"></div>
+          <div class="fb-dotgrid"></div>
+          <div class="fb-palette">
+            <div class="fb-palette-search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span class="fb-palette-divider"></span>
+              <span class="fb-palette-input">Automated Reasoning Checks</span>
+              <span class="fb-palette-x">✕</span>
+            </div>
+            <div class="fb-palette-label">DETECTION CRITERIA</div>
+            <div class="fb-palette-item is-active">
+              <span>Contradiction Match</span>
+              <kbd>C</kbd>
+            </div>
+            <div class="fb-palette-item">
+              <span>Circular Loop Chain</span>
+              <kbd>L</kbd>
+            </div>
+          </div>
+        </div>
+
+        <div class="fb-copy">
+          <h3 class="fb-title">WHAT MINDMAP DEBUGGER CATCHES</h3>
+          <ul class="fb-catch-list">
+            <li>
+              <span class="badge badge-contra shrink-0">CONTRADICTION</span>
+              <span class="fb-text">Two claims that can't both be true, stated plainly enough for the model to catch.</span>
+            </li>
+            <li>
+              <span class="badge badge-circ shrink-0">CIRCULAR</span>
+              <span class="fb-text">A chain of claims that loops back and uses its own conclusion as support.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="preview" class="finding-section max-w-6xl mx-auto px-6 relative z-10">
+    <div class="finding-intro reveal">
+      <span class="finding-kicker font-mono" id="preview-kicker">LIVE RELATION MAP</span>
+      <h2 class="font-display text-xl font-semibold mb-2">Your most recent run, at a glance</h2>
+      <p class="text-[13.5px] text-[#8B949E]" id="preview-subtitle">Run something in the dashboard and the result will show here. Meanwhile, here's a sample.</p>
+    </div>
+    <div class="preview-grid reveal">
+      <div class="node-card graph-preview graph-preview-card">
+        <div class="gp-flare gp-flare-blue"></div>
+        <div class="gp-flare gp-flare-amber"></div>
+        <div class="graph-toolbar">
+          <span class="graph-title font-mono" id="preview-source">SAMPLE / RELEASE PLAN</span>
+          <div class="graph-legend font-mono" aria-label="Graph relation legend">
+            <span><i class="legend-dot legend-support"></i>claim</span>
+            <span><i class="legend-dot legend-contradiction"></i>contradiction</span>
+            <span><i class="legend-dot legend-circular"></i>circular</span>
+          </div>
+        </div>
+        <div class="graph-3d-wrap">
+          <canvas id="finding-graph-3d" aria-label="Interactive three dimensional graph of findings" style="opacity:0;background:transparent;transition:opacity .5s ease"></canvas>
+          <div id="preview-labels" class="graph-labels-wrap"></div>
+          <div id="preview-tooltip" class="graph-tooltip"></div>
+        </div>
+        <div class="graph-footer">
+          <span><b id="preview-claim-count">4</b> claims mapped</span>
+          <span><b id="preview-relation-count">3</b> relations found</span>
+          <span class="graph-live is-stale" id="preview-live-tag"><i></i> sample data</span>
+        </div>
+      </div>
+      <aside class="preview-summary">
+        <div class="preview-summary-head">
+          <span class="preview-summary-title">Summary</span>
+          <span class="preview-summary-src font-mono" id="preview-summary-src">SAMPLE</span>
+        </div>
+        <p class="preview-summary-sub" id="preview-summary-sub">This is a sample result. Run your own text in the dashboard and this panel will update.</p>
+        <div class="preview-stat-row">
+          <div>
+            <div class="preview-stat-num red" id="preview-contra-count">0</div>
+            <div class="preview-stat-label">contradictions</div>
+          </div>
+          <div>
+            <div class="preview-stat-num amber" id="preview-circ-count">0</div>
+            <div class="preview-stat-label">circular chains</div>
+          </div>
+        </div>
+        <div class="preview-finding-list" id="preview-finding-list"></div>
+        <a href="dashboard.html" class="btn-primary font-mono text-[12px] px-4 py-2.5 preview-cta inline-block text-center">Run your own text →</a>
+      </aside>
+    </div>
+  </section>
+
+  <section id="stack" class="max-w-6xl mx-auto px-6 pb-24 relative z-10">
+    <span class="section-kicker reveal">UNDER THE HOOD</span>
+    <h2 class="font-display text-2xl md:text-3xl font-semibold mb-10 text-white reveal">Built with</h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-copper p-5 flex items-center justify-between">
+          <div class="z-10 bg-[#161210]/85 border border-white/10 rounded-2xl p-4 shadow-2xl backdrop-blur-md">
+            <div class="text-3xl font-bold font-display text-white tracking-tight leading-none">&lt;3s</div>
+            <div class="text-[11px] text-[#e0a87a] mt-1.5 font-medium leading-tight">consensus<br/>latency</div>
+          </div>
+          <div class="relative w-44 h-44 -mr-4 flex items-center justify-center">
+            <svg class="w-full h-full transform -rotate-45" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="65" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-dasharray="320" stroke-dashoffset="80"/>
+              <circle cx="80" cy="80" r="65" fill="none" stroke="url(#copperGrad)" stroke-width="12" stroke-dasharray="320" stroke-dashoffset="150" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="copperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fdba74"/>
+                  <stop offset="50%" stop-color="#ea580c"/>
+                  <stop offset="100%" stop-color="#9a3412"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_12px_#fb923c] z-10"></div>
+              <div class="absolute w-1 h-16 bg-gradient-to-t from-white to-amber-200 rounded-full origin-bottom transform rotate-[55deg] -translate-y-8 shadow-[0_0_15px_rgba(251,146,60,0.8)]"></div>
+            </div>
+          </div>
+        </div>
+        <h3 class="bento-card-title">Strands Agents SDK</h3>
+        <p class="bento-card-desc">Model-agnostic AWS agent framework wrapping Groq's <span class="font-mono text-[12px] text-white">gpt-oss-120b</span> for high-speed deterministic extraction and reasoning.</p>
+      </div>
+
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-cyan p-5 flex items-center justify-between">
+          <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0c2e42] via-[#071d2b] to-[#041018] border-2 border-cyan-400/60 shadow-[0_0_30px_rgba(6,182,212,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] flex items-center justify-center">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" class="drop-shadow-[0_2px_8px_rgba(255,255,255,0.6)]">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="w-[58%] space-y-2 font-sans">
+            <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/5 text-[11px] text-[#8e95a2]">
+              <span class="w-4 h-4 rounded bg-white/10 flex items-center justify-center text-white/70">✓</span>
+              <span>Explicit policy rules</span>
+            </div>
+            <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-950/60 to-cyan-900/40 border border-cyan-400/50 text-[11.5px] text-white shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+              <span class="w-4 h-4 rounded bg-cyan-400 text-black font-bold text-[10px] flex items-center justify-center shadow-[0_0_8px_#22d3ee]">✓</span>
+              <span class="font-medium text-cyan-100">Confidence threshold > 0.6</span>
+            </div>
+            <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/5 text-[11px] text-[#8e95a2]">
+              <span class="w-4 h-4 rounded bg-white/10 flex items-center justify-center text-white/70">✓</span>
+              <span>Contradictions always pass</span>
+            </div>
+          </div>
+        </div>
+        <h3 class="bento-card-title">Cedar policy gate</h3>
+        <p class="bento-card-desc">Findings are filtered through an explicit policy: contradictions always surface, circular reasoning only above a 0.6 confidence threshold.</p>
+      </div>
+
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-blue p-5 flex items-center justify-center">
+          <div class="w-[92%] bg-[#0e121d]/90 border border-white/10 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md">
+            <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-white/5">
+              <div class="flex items-center gap-1.5 text-[12px] font-semibold text-white">
+                <span>Extraction Passes</span>
+                <span class="text-[9px] text-[#788296]">▾</span>
+              </div>
+              <div class="flex items-center gap-1 text-[10.5px]">
+                <span class="px-2 py-0.5 rounded-full bg-white/10 text-white/70">Run 1</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium border border-amber-400/30">Run 2</span>
+                <span class="px-2 py-0.5 rounded-full bg-white/5 text-white/50">Run 3</span>
+              </div>
+            </div>
+            <div class="space-y-1.5 text-[11px]">
+              <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-white/[0.03] text-[#c2c7d0]">
+                <span class="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_6px_#60a5fa]"></span>
+                <span class="flex-1 truncate">Independent claim alignment pass</span>
+                <span class="text-[9.5px] text-[#717784]">done</span>
+              </div>
+              <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-white/[0.02] text-[#9197a4]">
+                <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
+                <span class="flex-1 truncate">Cross-run similarity dedup</span>
+                <span class="text-[9.5px] text-[#717784]">merged</span>
+              </div>
+              <div class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-white/[0.02] text-[#9197a4]">
+                <span class="w-2 h-2 rounded-full bg-blue-400/60"></span>
+                <span class="flex-1 truncate">Zero nondeterminism variance</span>
+                <span class="text-[9.5px] text-[#717784]">verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3 class="bento-card-title">Consensus extraction</h3>
+        <p class="bento-card-desc">The same text is extracted three times independently; results are merged by similarity to cancel out per-run nondeterminism from Groq's serving of the model.</p>
+      </div>
+
+      <div class="bento-card reveal">
+        <div class="card-stage spotlight-amber p-5 flex items-center justify-center">
+          <div class="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none text-[9px] font-mono text-white tracking-widest gap-2">
+            <span>[ HTML5 ] [ CSS3 ] [ THREE.JS ] [ GSAP ] [ FLASK ]</span>
+          </div>
+          <div class="w-[92%] mt-3 z-10 bg-[#121110]/95 border border-white/10 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md font-sans">
+            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/5 text-[11px] text-[#8e929b] mb-2.5">
+              <div class="flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Runtime Stack</span>
+              </div>
+              <span class="text-[10px] text-[#63666f]">ZERO BUILD STEP</span>
+            </div>
+            <div class="text-[9.5px] font-mono text-[#8a8174] uppercase tracking-wider mb-1 px-1">COMPONENTS</div>
+            <div class="space-y-1 text-[11px]">
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/15 text-white font-medium">
+                <span>Flask 2-Route Microservice</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/40 border border-white/20 text-[9px] font-mono">py</span>
+              </div>
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[#9da1aa] hover:bg-white/5">
+                <span>Three.js + GSAP Canvas Engine</span>
+                <span class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono">webgl</span>
+              </div>
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[#9da1aa] hover:bg-white/5">
+                <span>Instant Static CDN Delivery</span>
+                <span class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono">fast</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3 class="bento-card-title">Flask + vanilla JS</h3>
+        <p class="bento-card-desc">No frontend build step — the whole UI is Tailwind (CDN), GSAP, and Three.js dropped straight into static HTML, served by a two-route Flask app.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer id="about" class="site-footer relative z-10">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="flex items-center gap-2.5">
+            <svg class="brand-mark" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <path d="M16 16 6 9M16 16l11-4M16 16v11M16 16 7 23" stroke="#ffffff" stroke-width="1.3" opacity=".85"/>
+              <circle cx="16" cy="16" r="4" fill="#ffffff"/>
+              <circle cx="6" cy="9" r="2.3" fill="#ffffff"/>
+              <circle cx="27" cy="12" r="2.3" fill="#ffffff"/>
+              <circle cx="16" cy="27" r="2.3" fill="#ffffff"/>
+              <circle cx="7" cy="23" r="2.3" fill="#ffffff"/>
+            </svg>
+            <span class="brand-wordmark font-display font-semibold text-white">MindMap Debugger</span>
+          </div>
+          <p>A contradiction and circular-reasoning detector for anything with claims in it — transcripts, arguments, design docs.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="#top">Home</a>
+          <a href="#how">How it works</a>
+          <a href="dashboard.html">Open dashboard</a>
+        </div>
+        <div class="footer-col">
+          <h4>Project</h4>
+          <a href="https://wemakedevs.org/aws/first-commit" target="_blank" rel="noopener">AWS First Commit</a>
+          <a href="#preview">System Status</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 MindMap Debugger — built for WeMakeDevs × AWS First Commit</span>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  (function(){
+    const nav = document.querySelector('.site-nav');
+    if(!nav) return;
+    const onScroll = () => {
+      if(window.scrollY > 40) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+
+  /* ---- Particle background ---- */
+  (function(){
+    const canvas = document.getElementById('particles');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width, height, cx, cy;
+    let particles = [];
+    const count = 110;
+    const fov = 750;
+    let rotX = 0.15, rotY = 0.25;
+    const colors = ['#ffd54f', '#90caf9', '#ffffff', '#ffb74d', '#e0e0e0'];
+
+    function resize(){
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      cx = width / 2; cy = height / 2;
+    }
+    function init(){
+      resize();
+      particles = Array.from({length: count}, () => ({
+        x:(Math.random()-0.5)*1400, y:(Math.random()-0.5)*1100, z:(Math.random()-0.5)*1000,
+        vx:(Math.random()-0.5)*0.12, vy:(Math.random()-0.5)*0.09, vz:(Math.random()-0.5)*0.12,
+        baseR: Math.random()*1.5+0.9,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        phase: Math.random()*Math.PI*2, twinkle: Math.random()*0.9+0.4
+      }));
+    }
+    function draw(){
+      ctx.clearRect(0,0,width,height);
+      const time = performance.now() * 0.001;
+      rotY += 0.00030; rotX += 0.00016;
+      const cosY=Math.cos(rotY), sinY=Math.sin(rotY);
+      const cosX=Math.cos(rotX), sinX=Math.sin(rotX);
+      const projected = [];
+      for(let i=0;i<particles.length;i++){
+        const p = particles[i];
+        p.x+=p.vx; p.y+=p.vy; p.z+=p.vz;
+        if(p.x<-700)p.x=700;else if(p.x>700)p.x=-700;
+        if(p.y<-550)p.y=550;else if(p.y>550)p.y=-550;
+        if(p.z<-500)p.z=500;else if(p.z>500)p.z=-500;
+        const x1=p.x*cosY-p.z*sinY, z1=p.z*cosY+p.x*sinY;
+        const y1=p.y*cosX-z1*sinX, z2=z1*cosX+p.y*sinX;
+        const zCam=z2+800;
+        if(zCam>60){
+          const scale=fov/zCam;
+          const sx=cx+x1*scale, sy=cy+y1*scale;
+          const r=Math.max(0.6, p.baseR*scale);
+          const alpha=Math.min(0.72, Math.max(0.20, (1-z2/800)*0.42 + Math.sin(time*p.twinkle+p.phase)*0.16));
+          projected.push({sx,sy,r,color:p.color,alpha,orig:p});
+          ctx.beginPath(); ctx.arc(sx,sy,r,0,Math.PI*2);
+          ctx.fillStyle=p.color; ctx.globalAlpha=alpha; ctx.fill();
+        }
+      }
+      for(let i=0;i<projected.length;i++){
+        const p1=projected[i];
+        for(let j=i+1;j<projected.length;j++){
+          const p2=projected[j];
+          const dx=p1.orig.x-p2.orig.x, dy=p1.orig.y-p2.orig.y, dz=p1.orig.z-p2.orig.z;
+          const dist3D=Math.sqrt(dx*dx+dy*dy+dz*dz);
+          if(dist3D<110){
+            const lineAlpha=(1-dist3D/110)*0.16*Math.min(p1.alpha,p2.alpha);
+            ctx.beginPath(); ctx.moveTo(p1.sx,p1.sy); ctx.lineTo(p2.sx,p2.sy);
+            ctx.strokeStyle='#ffd54f'; ctx.globalAlpha=lineAlpha; ctx.lineWidth=0.5; ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha=1;
+      requestAnimationFrame(draw);
+    }
+    init(); draw();
+    window.addEventListener('resize', init);
+  })();
+
+  /* ---- Scroll reveals ---- */
+  if(!prefersReduced){
+    gsap.utils.toArray('.reveal:not(.reveal-slow)').forEach((el) => {
+      gsap.from(el, { opacity:0, y:24, duration:0.6, ease:'power2.out', scrollTrigger:{ trigger:el, start:'top 88%' } });
+    });
+    gsap.utils.toArray('.reveal-slow').forEach((el, i) => {
+      gsap.set(el, { opacity:0, y:56, scale:0.98 });
+      ScrollTrigger.create({
+        trigger: el, start:'top 90%', once:true,
+        onEnter: () => {
+          gsap.to(el, { opacity:1, y:0, scale:1, duration:1.3, ease:'power2.out', delay:i*0.12, clearProps:'all' });
+        }
+      });
+    });
+  }
+
+  /* ================= HERO: GOLDEN 3D PLEXUS NETWORK ================= */
+  (function(){
+    const canvasEl = document.getElementById('hero-canvas');
+    if(!window.THREE || !canvasEl) return;
+    const host = canvasEl.parentElement;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.2);
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasEl, alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    scene.add(new THREE.AmbientLight(0x4a3b1a, 1.6));
+    const goldKeyLight = new THREE.PointLight(0xffb830, 3.2, 14);
+    goldKeyLight.position.set(-2,3,5); scene.add(goldKeyLight);
+    const goldRimLight = new THREE.PointLight(0xffd54f, 2.4, 12);
+    goldRimLight.position.set(3,-2.5,4); scene.add(goldRimLight);
+    const centerCoreLight = new THREE.PointLight(0xff9800, 2.0, 8);
+    centerCoreLight.position.set(0,0,0); scene.add(centerCoreLight);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const nodeCount = 68;
+    const nodeData = [];
+    const sphereGeo = new THREE.SphereGeometry(1, 16, 16);
+    const yellowPalette = [0xffd700, 0xffc107, 0xffb300, 0xffa000, 0xffca28, 0xffe082];
+
+    for(let i=0;i<nodeCount;i++){
+      const u=Math.random(), v=Math.random();
+      const theta=u*2.0*Math.PI, phi=Math.acos(2.0*v-1.0);
+      const r=Math.cbrt(Math.random())*2.6;
+      const baseX=r*Math.sin(phi)*Math.cos(theta)*1.05;
+      const baseY=r*Math.sin(phi)*Math.sin(theta)*0.95;
+      const baseZ=r*Math.cos(phi)*1.1;
+      const isHub = i < 8;
+      const size = isHub ? (0.12+Math.random()*0.05) : (0.045+Math.random()*0.045);
+      const color = isHub ? 0xffd700 : yellowPalette[i % yellowPalette.length];
+      const mat = new THREE.MeshPhongMaterial({ color, emissive:color, emissiveIntensity: isHub?0.85:0.45, shininess:95 });
+      const mesh = new THREE.Mesh(sphereGeo, mat);
+      mesh.scale.setScalar(size);
+      mesh.position.set(baseX, baseY, baseZ);
+      mesh.userData = { baseX, baseY, baseZ, phase:Math.random()*Math.PI*2, speed:0.8+Math.random()*0.8, isHub };
+      group.add(mesh);
+      nodeData.push({ mesh, pos:new THREE.Vector3(baseX, baseY, baseZ), isHub });
+      if(isHub){
+        const haloMat = new THREE.MeshBasicMaterial({ color:0xffc107, transparent:true, opacity:0.18 });
+        const halo = new THREE.Mesh(sphereGeo, haloMat);
+        halo.scale.setScalar(size*2.4);
+        mesh.add(halo);
+      }
+    }
+
+    const maxDistance = 1.45;
+    const linePairs = [];
+    for(let i=0;i<nodeData.length;i++){
+      for(let j=i+1;j<nodeData.length;j++){
+        const d = nodeData[i].pos.distanceTo(nodeData[j].pos);
+        if(d < maxDistance) linePairs.push({ i, j, dist:d });
+      }
+    }
+    const linePositions = new Float32Array(linePairs.length * 6);
+    const lineColors = new Float32Array(linePairs.length * 6);
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+    lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
+    const lineMat = new THREE.LineBasicMaterial({ vertexColors:true, transparent:true, opacity:0.45, blending:THREE.AdditiveBlending });
+    const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
+    group.add(lineMesh);
+
+    function updateLines(){
+      const posAttr = lineGeo.attributes.position;
+      const colAttr = lineGeo.attributes.color;
+      let ptr = 0;
+      for(let k=0;k<linePairs.length;k++){
+        const p1 = nodeData[linePairs[k].i].mesh.position;
+        const p2 = nodeData[linePairs[k].j].mesh.position;
+        const d = p1.distanceTo(p2);
+        const alpha = Math.max(0.08, 1-d/maxDistance);
+        posAttr.array[ptr*6]   = p1.x; posAttr.array[ptr*6+1] = p1.y; posAttr.array[ptr*6+2] = p1.z;
+        posAttr.array[ptr*6+3] = p2.x; posAttr.array[ptr*6+4] = p2.y; posAttr.array[ptr*6+5] = p2.z;
+        colAttr.array[ptr*6]   = 1.0*alpha; colAttr.array[ptr*6+1] = 0.78*alpha; colAttr.array[ptr*6+2] = 0.22*alpha;
+        colAttr.array[ptr*6+3] = 1.0*alpha; colAttr.array[ptr*6+4] = 0.72*alpha; colAttr.array[ptr*6+5] = 0.18*alpha;
+        ptr++;
+      }
+      posAttr.needsUpdate = true; colAttr.needsUpdate = true;
+    }
+
+    function resizeHero(){
+      const w = host.clientWidth, h = host.clientHeight;
+      camera.aspect = w/h; camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+    resizeHero();
+    window.addEventListener('resize', resizeHero);
+
+    let targetRotX=0, targetRotY=0;
+    let currentRotX=0, currentRotY=0;
+    let autoAngleY=0, autoAngleX=0;
+    let lastCursorX=null, lastCursorY=null;
+
+    window.addEventListener('mousemove', (e) => {
+      if(lastCursorX!==null && lastCursorY!==null){
+        const dx = e.clientX - lastCursorX;
+        const dy = e.clientY - lastCursorY;
+        targetRotY += dx*0.0045;
+        targetRotX += dy*0.0045;
+      }
+      lastCursorX = e.clientX; lastCursorY = e.clientY;
+    });
+
+    let dragging=false, dragStartX=0, dragStartY=0;
+    host.addEventListener('mousedown', (e) => { dragging=true; dragStartX=e.clientX; dragStartY=e.clientY; });
+    window.addEventListener('mouseup', () => { dragging=false; });
+    host.addEventListener('mousemove', (e) => {
+      if(dragging){
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        dragStartX = e.clientX; dragStartY = e.clientY;
+        targetRotY += dx*0.007; targetRotX += dy*0.007;
+      }
+    });
+
+    const clock = new THREE.Clock();
+    function animateHero(){
+      const elapsed = clock.getElapsedTime();
+      if(!prefersReduced){ autoAngleY += 0.0020; autoAngleX += 0.0010; }
+      currentRotX += (targetRotX - currentRotX)*0.08;
+      currentRotY += (targetRotY - currentRotY)*0.08;
+      group.rotation.x = currentRotX + autoAngleX;
+      group.rotation.y = currentRotY + autoAngleY;
+      group.rotation.z = Math.sin(elapsed*0.3)*0.08;
+      for(let i=0;i<nodeData.length;i++){
+        const mesh = nodeData[i].mesh;
+        const u = mesh.userData;
+        mesh.position.x = u.baseX + Math.sin(elapsed*u.speed + u.phase)*0.08;
+        mesh.position.y = u.baseY + Math.cos(elapsed*u.speed*0.9 + u.phase)*0.08;
+        mesh.position.z = u.baseZ + Math.sin(elapsed*u.speed*0.7 + u.phase)*0.06;
+        const pulse = Math.sin(elapsed*2.0 + u.phase)*0.5 + 0.5;
+        mesh.material.emissiveIntensity = (u.isHub ? 0.7 : 0.35) + pulse*0.35;
+      }
+      updateLines();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animateHero);
+    }
+
+    requestAnimationFrame(() => {
+      renderer.render(scene, camera);
+      canvasEl.style.opacity = '1';
+      animateHero();
+    });
+  })();
+
+  /* ================= LIVE FINDING PREVIEW ================= */
+  (function(){
+    const STORAGE_KEY = 'mindmap_last_analysis';
+    let findings = [];
+    let propositions = [];
+    let sourceLabel = 'SAMPLE / RELEASE PLAN';
+    let isLive = false;
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const saved = JSON.parse(raw);
+        if(saved && Array.isArray(saved.findings) && saved.findings.length){
+          findings = saved.findings;
+          propositions = Array.isArray(saved.propositions) ? saved.propositions : [];
+          sourceLabel = 'LAST RUN / YOUR TEXT';
+          isLive = true;
+        }
+      }
+    } catch(e){ /* fall through to sample */ }
+
+    if(!findings.length){
+      findings = [
+        { type:'direct_contradiction', confidence:0.88, claims:['"QA needs a full week"','"No time for QA this sprint"'] },
+        { type:'direct_contradiction', confidence:0.82, claims:['"Ship by Friday"','"No time for QA this sprint"'] },
+        { type:'direct_contradiction', confidence:0.75, claims:['"Friday deadline is fixed"','"No time for QA this sprint"'] },
+      ];
+      propositions = [
+        { id:'P1', text:'"Ship by Friday"' },
+        { id:'P2', text:'"QA needs a full week"' },
+        { id:'P3', text:'"No time for QA this sprint"' },
+        { id:'P4', text:'"Friday deadline is fixed"' },
+        { id:'P5', text:'"Team has capacity this quarter"' },
+        { id:'P6', text:'"Release criteria are strict"' },
+        { id:'P7', text:'"Stakeholders expect Friday ship"' },
+        { id:'P8', text:'"Regression testing is manual"' },
+        { id:'P9', text:'"Code review backlog is growing"' },
+        { id:'P10', text:'"Deployment pipeline is ready"' },
+      ];
+    }
+
+    if(!propositions.length){
+      const seen = new Set();
+      const arr = [];
+      findings.forEach(f => (f.claims || []).forEach(c => {
+        if(!seen.has(c)){ seen.add(c); arr.push({ id:'P'+(arr.length+1), text:c }); }
+      }));
+      propositions = arr;
+    }
+
+    const esc = (s) => { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
+
+    document.getElementById('preview-source').textContent = sourceLabel;
+    document.getElementById('preview-claim-count').textContent = propositions.length;
+    document.getElementById('preview-relation-count').textContent = findings.length;
+
+    const contraCount = findings.filter(f => f.type === 'direct_contradiction').length;
+    const circCount = findings.filter(f => f.type === 'circular').length;
+    document.getElementById('preview-contra-count').textContent = contraCount;
+    document.getElementById('preview-circ-count').textContent = circCount;
+
+    const liveTag = document.getElementById('preview-live-tag');
+    if(isLive){
+      liveTag.classList.remove('is-stale');
+      liveTag.innerHTML = '<i></i> from your last run';
+      document.getElementById('preview-subtitle').textContent = 'This is the relation map from the most recent analysis you ran in the dashboard.';
+      document.getElementById('preview-summary-src').textContent = 'LIVE';
+      document.getElementById('preview-summary-sub').textContent = 'Here is a plain-language summary of what the analysis found.';
+    } else {
+      document.getElementById('preview-summary-src').textContent = 'SAMPLE';
+    }
+
+    const listEl = document.getElementById('preview-finding-list');
+    if(findings.length === 0){
+      listEl.innerHTML = '<div class="preview-empty">No findings to summarize.</div>';
+    } else {
+      listEl.innerHTML = findings.slice(0, 5).map(f => {
+        const isContra = f.type === 'direct_contradiction';
+        const cs = f.claims || [];
+        const conf = Math.round((f.confidence || 0) * 100);
+        const title = isContra ? 'CONTRADICTION' : 'CIRCULAR REASONING';
+        const body = isContra
+          ? cs.map(esc).join(' <em>but</em> ')
+          : cs.map(esc).join(' <span class="arrow">→</span> ');
+        return `<div class="preview-finding ${isContra ? 'contra' : 'circ'}">
+          <div class="preview-finding-title">${title} · ${conf}% sure</div>
+          <div class="preview-finding-body">${body}</div>
+        </div>`;
+      }).join('');
+    }
+
+    const findingCanvas = document.getElementById('finding-graph-3d');
+    const labelWrap = document.getElementById('preview-labels');
+    const tooltip = document.getElementById('preview-tooltip');
+    if(!window.THREE || !findingCanvas) return;
+
+    function hashStr(s){
+      let h = 0;
+      for(let i = 0; i < s.length; i++){ h = ((h<<5) - h) + s.charCodeAt(i); h |= 0; }
+      return Math.abs(h);
+    }
+    function prng(seed){
+      let s = (seed || 1) >>> 0;
+      return function(){
+        s = (s * 1664525 + 1013904223) >>> 0;
+        return s / 0xFFFFFFFF;
+      };
+    }
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    camera.position.set(0, 0, 8.6);
+    const renderer = new THREE.WebGLRenderer({ canvas: findingCanvas, alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    scene.add(new THREE.AmbientLight(0x4a3b1a, 1.6));
+    const keyLight = new THREE.PointLight(0xffb830, 3.2, 14);
+    keyLight.position.set(-2,3,5); scene.add(keyLight);
+    const rimLight = new THREE.PointLight(0xffd54f, 2.4, 12);
+    rimLight.position.set(3,-2.5,4); scene.add(rimLight);
+    const coreLight = new THREE.PointLight(0xff9800, 2.0, 8);
+    coreLight.position.set(0,0,0); scene.add(coreLight);
+
+    const field = new THREE.Group();
+    scene.add(field);
+
+    let dragging=false, lastX=0, lastY=0;
+    let userRotY=0, userRotX=0;
+
+    findingCanvas.addEventListener('pointerdown', (e) => {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      findingCanvas.setPointerCapture(e.pointerId);
+    });
+    findingCanvas.addEventListener('pointerup', () => { dragging = false; });
+    findingCanvas.addEventListener('pointerleave', () => { dragging = false; tooltip.style.opacity = 0; });
+    findingCanvas.addEventListener('pointermove', (e) => {
+      if(dragging){
+        userRotY += (e.clientX - lastX) * 0.006;
+        userRotX += (e.clientY - lastY) * 0.006;
+        userRotX = Math.max(-0.9, Math.min(0.9, userRotX));
+        lastX = e.clientX; lastY = e.clientY;
+      }
+      handleHover(e);
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let nodeMeshes = [], edgeLines = [], hovered = null, ambientRef = null;
+
+    function handleHover(e){
+      const rect = findingCanvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(nodeMeshes.map(n => n.mesh));
+      if(hits.length){
+        const hit = nodeMeshes.find(n => n.mesh === hits[0].object);
+        hovered = hit;
+        findingCanvas.style.cursor = 'pointer';
+        tooltip.textContent = hit.label;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
+        tooltip.style.top = (e.clientY - rect.top + 10) + 'px';
+      } else {
+        hovered = null;
+        findingCanvas.style.cursor = 'grab';
+        tooltip.style.opacity = 0;
+      }
+    }
+
+    function resizeFinding(){
+      const w = findingCanvas.clientWidth, h = findingCanvas.clientHeight;
+      if(!w || !h) return;
+      camera.aspect = w/h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+    window.addEventListener('resize', resizeFinding);
+
+    const hubTexts = new Set();
+    findings.forEach(f => (f.claims || []).forEach(c => hubTexts.add(c)));
+
+    const textToIndex = new Map();
+    propositions.forEach((p, i) => textToIndex.set(p.text, i));
+
+    const radius = 2.6;
+    const positions = propositions.map((p, i) => {
+      const seed = hashStr((p.id || '') + (p.text || '') + i);
+      const rnd = prng(seed);
+      const u = rnd(), v = rnd();
+      const theta = u*2.0*Math.PI;
+      const phi = Math.acos(2.0*v - 1.0);
+      const r = Math.cbrt(rnd())*radius;
+      return new THREE.Vector3(
+        r*Math.sin(phi)*Math.cos(theta)*1.05,
+        r*Math.sin(phi)*Math.sin(theta)*0.95,
+        r*Math.cos(phi)*1.1
+      );
+    });
+
+    [[radius*0.92, 0xffb830, 0], [radius*0.75, 0xffd54f, Math.PI/4]].forEach(([r,color,rot]) => {
+      const ringGeo = new THREE.RingGeometry(r-0.004, r, 96);
+      const ringMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.06, side:THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI/2.3;
+      ring.rotation.z = rot;
+      field.add(ring);
+    });
+
+    const dustGeo = new THREE.SphereGeometry(1, 8, 8);
+    const dustRnd = prng(hashStr('dust-seed'));
+    for(let i=0;i<40;i++){
+      const u = dustRnd(), v = dustRnd();
+      const theta = u*2*Math.PI;
+      const phi = Math.acos(2*v - 1);
+      const r = 2.2 + dustRnd()*1.4;
+      const dustMat = new THREE.MeshBasicMaterial({ color:0xffe082, transparent:true, opacity:0.10 });
+      const dust = new THREE.Mesh(dustGeo, dustMat);
+      dust.scale.setScalar(0.02 + dustRnd()*0.025);
+      dust.position.set(
+        r*Math.sin(phi)*Math.cos(theta),
+        r*Math.sin(phi)*Math.sin(theta),
+        r*Math.cos(phi)
+      );
+      field.add(dust);
+    }
+
+    const nodeGeo = new THREE.SphereGeometry(1, 20, 20);
+    const goldPalette = [0xffd700, 0xffc107, 0xffb300, 0xffa000, 0xffca28, 0xffe082];
+    propositions.forEach((p, i) => {
+      const isHub = hubTexts.has(p.text);
+      const baseScale = isHub ? (0.13 + (hashStr(p.id || p.text) % 5) * 0.008) : (0.05 + (hashStr(p.text) % 5) * 0.008);
+      const color = isHub ? 0xffd700 : goldPalette[i % goldPalette.length];
+
+      const mat = new THREE.MeshPhongMaterial({ color, emissive:color, emissiveIntensity:isHub?0.85:0.45, shininess:95 });
+      const mesh = new THREE.Mesh(nodeGeo, mat);
+      mesh.scale.setScalar(baseScale);
+      mesh.position.copy(positions[i]);
+      field.add(mesh);
+
+      if(isHub){
+        const haloMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.22 });
+        const halo = new THREE.Mesh(nodeGeo, haloMat);
+        halo.scale.setScalar(2.4);
+        mesh.add(halo);
+      }
+
+      const short = p.text.length > 34 ? p.text.slice(0, 32) + '…' : p.text;
+      const labelEl = document.createElement('div');
+      labelEl.className = 'graph-node-label' + (isHub ? '' : ' graph-node-label-ambient');
+      labelEl.textContent = `${i + 1}. ${short}`;
+      labelWrap.appendChild(labelEl);
+
+      nodeMeshes.push({
+        mesh, label: p.text, labelEl,
+        phase: (hashStr(p.text) % 1000) / 1000 * Math.PI * 2,
+        speed: 0.8 + (hashStr(p.text) % 100) / 100 * 0.8,
+        basePos: positions[i].clone(),
+        baseScale, isHub
+      });
+    });
+
+    const MAX_DIST = 1.35;
+    const ambientPairs = [];
+    for(let i=0;i<positions.length;i++){
+      for(let j=i+1;j<positions.length;j++){
+        const d = positions[i].distanceTo(positions[j]);
+        if(d < MAX_DIST) ambientPairs.push({ i, j, d });
+      }
+    }
+    if(ambientPairs.length){
+      const geoAmb = new THREE.BufferGeometry();
+      const posArr = new Float32Array(ambientPairs.length * 6);
+      const colArr = new Float32Array(ambientPairs.length * 6);
+      geoAmb.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+      geoAmb.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+      const matAmb = new THREE.LineBasicMaterial({ vertexColors:true, transparent:true, opacity:0.28, blending:THREE.AdditiveBlending });
+      const segAmb = new THREE.LineSegments(geoAmb, matAmb);
+      field.add(segAmb);
+      ambientRef = { geo:geoAmb, pairs:ambientPairs };
+    }
+
+    findings.forEach(f => {
+      const claims = f.claims || [];
+      const isContra = f.type === 'direct_contradiction';
+      for(let i=0;i<claims.length;i++){
+        for(let j=i+1;j<claims.length;j++){
+          const ai = textToIndex.get(claims[i]);
+          const bi = textToIndex.get(claims[j]);
+          if(ai == null || bi == null) continue;
+          const a = positions[ai], b = positions[bi];
+          const mid = a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0, 0.4));
+          const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+          const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
+          const baseOpacity = isContra ? 0.9 : 0.6;
+          let mat, line;
+          if(isContra){
+            mat = new THREE.LineDashedMaterial({ color:0xf85149, dashSize:0.1, gapSize:0.08, transparent:true, opacity:baseOpacity, blending:THREE.AdditiveBlending });
+            line = new THREE.Line(lineGeo, mat);
+            line.computeLineDistances();
+          } else {
+            mat = new THREE.LineBasicMaterial({ color:0xffc107, transparent:true, opacity:baseOpacity, blending:THREE.AdditiveBlending });
+            line = new THREE.Line(lineGeo, mat);
+          }
+          field.add(line);
+          edgeLines.push({ mat, baseOpacity, a:nodeMeshes[ai], b:nodeMeshes[bi] });
+        }
+      }
+    });
+
+    const clock = new THREE.Clock();
+    let started = false;
+
+    function tick(){
+      const t = clock.getElapsedTime();
+      field.rotation.y = userRotY;
+      field.rotation.x = userRotX;
+
+      nodeMeshes.forEach(nm => {
+        const isHovered = hovered === nm;
+        const pulse = Math.sin(t*2.0 + nm.phase)*0.5 + 0.5;
+        const baseI = nm.isHub ? 0.7 : 0.35;
+        const target = isHovered ? 1.25 : baseI + pulse*0.4;
+        nm.mesh.material.emissiveIntensity += (target - nm.mesh.material.emissiveIntensity)*0.15;
+
+        const targetScale = isHovered ? nm.baseScale*1.6 : nm.baseScale;
+        nm.mesh.scale.setScalar(nm.mesh.scale.x + (targetScale - nm.mesh.scale.x)*0.15);
+
+        nm.mesh.position.x = nm.basePos.x + Math.sin(t*nm.speed + nm.phase)*0.08;
+        nm.mesh.position.y = nm.basePos.y + Math.cos(t*nm.speed*0.9 + nm.phase)*0.08;
+        nm.mesh.position.z = nm.basePos.z + Math.sin(t*nm.speed*0.7 + nm.phase)*0.06;
+
+        if(nm.labelEl){
+          const vec = nm.mesh.getWorldPosition(new THREE.Vector3()).project(camera);
+          const rect = findingCanvas.getBoundingClientRect();
+          const x = (vec.x*0.5 + 0.5)*rect.width;
+          const y = (-vec.y*0.5 + 0.5)*rect.height;
+          const behind = vec.z > 1;
+          nm.labelEl.style.transform = `translate(${x + 10}px, ${y - 8}px)`;
+          if(behind){ nm.labelEl.style.opacity = 0; }
+          else if(nm.isHub){ nm.labelEl.style.opacity = isHovered ? 1 : 0.85; }
+          else { nm.labelEl.style.opacity = isHovered ? 1 : 0; }
+          nm.labelEl.classList.toggle('graph-node-label-hot', isHovered);
+        }
+      });
+
+      if(ambientRef){
+        const posAttr = ambientRef.geo.attributes.position;
+        const colAttr = ambientRef.geo.attributes.color;
+        let ptr = 0;
+        ambientRef.pairs.forEach(pair => {
+          const p1 = nodeMeshes[pair.i].mesh.position;
+          const p2 = nodeMeshes[pair.j].mesh.position;
+          const d = p1.distanceTo(p2);
+          const alpha = Math.max(0.06, 1 - d/1.35);
+          posAttr.array[ptr*6]   = p1.x; posAttr.array[ptr*6+1] = p1.y; posAttr.array[ptr*6+2] = p1.z;
+          posAttr.array[ptr*6+3] = p2.x; posAttr.array[ptr*6+4] = p2.y; posAttr.array[ptr*6+5] = p2.z;
+          colAttr.array[ptr*6]   = 1.0*alpha; colAttr.array[ptr*6+1] = 0.78*alpha; colAttr.array[ptr*6+2] = 0.22*alpha;
+          colAttr.array[ptr*6+3] = 1.0*alpha; colAttr.array[ptr*6+4] = 0.72*alpha; colAttr.array[ptr*6+5] = 0.18*alpha;
+          ptr++;
+        });
+        posAttr.needsUpdate = true; colAttr.needsUpdate = true;
+      }
+
+      edgeLines.forEach(l => {
+        const involved = hovered && (l.a === hovered || l.b === hovered);
+        const target = involved ? 1.0 : l.baseOpacity;
+        l.mat.opacity += (target - l.mat.opacity)*0.15;
+      });
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    ScrollTrigger.create({
+      trigger: findingCanvas, start:'top 95%', once:true,
+      onEnter: () => {
+        if(!started){
+          started = true;
+          resizeFinding();
+          renderer.render(scene, camera);
+          findingCanvas.style.opacity = '1';
+          tick();
+        }
+      }
+    });
+  })();
+</script>
+</body>
+</html>

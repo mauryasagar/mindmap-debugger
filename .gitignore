@@ -1,0 +1,52 @@
+# ── Python ────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# ── Virtual environments ──────────────────
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# ── Flask / Runtime ───────────────────────
+instance/
+.webassets-cache
+*.log
+
+# ── Environment / secrets ─────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Editors / IDEs ────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Testing / coverage ────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node (if you add tooling later) ───────
+node_modules/
+package-lock.json
+
+# ── OS junk ───────────────────────────────
+desktop.ini
