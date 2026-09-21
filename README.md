@@ -6,7 +6,7 @@
 
 MindMap Debugger reads any text with claims in it — an argument, a meeting transcript, a design doc — extracts every atomic proposition, maps the logical relationships between them, and flags two specific kinds of reasoning failure: **direct contradictions** and **circular reasoning**.
 
-Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
+Built for the **WeMakeDevs × AWS First Commit** hackathon.
 
 </div>
 
@@ -18,17 +18,16 @@ Built for the **WeMakeDevs × AWS First Commit** hackathon (Build It track).
 ![Landing page hero](./assets/screenshots/landing-hero.png)
 *Interactive 3D claim constellation in the hero, plus a full pipeline walkthrough below.*
 
-### Landing page (full)
-[View the complete landing page screenshot →](./assets/screenshots/landing-full.png)
-
 ### Dashboard
 ![Dashboard](./assets/screenshots/dashboard.png)
 *Paste text, hit Analyze — findings render as both a 3D claim map and a plain-language summary.*
 
+### [Landing page (full)](./assets/screenshots/landing-full.png)
+
 
 ---
 
-## Build log
+## Blogs
 
 I documented the build day by day on Dev.to. The series is a full walkthrough of the decisions, dead-ends, and fixes that shaped this project.
 
@@ -36,7 +35,7 @@ I documented the build day by day on Dev.to. The series is a full walkthrough of
 |---|---|---|
 | 1 | [I hit my first contradiction before building one](https://dev.to/sagarmaurya/i-hit-my-first-contradiction-before-building-one-for-the-first-commit-hackathon-k2k) | Project idea, setting up Strands + Groq, first end-to-end extraction |
 | 2 | [Every bug I fixed today was hiding another one](https://dev.to/sagarmaurya/every-bug-i-fixed-today-was-hiding-another-one-22df) | Consensus merge, false-cycle bug, Jaccard rewrite, direction pruning |
-| 3 | *Coming soon — final write-up with the shipped demo, learning notes, and where the project goes next* | 🚧 |
+| 3 | [Three days, one tool, and every bug was hiding another one](https://dev.to/sagarmaurya/three-days-one-tool-and-every-bug-was-hiding-another-one-mindmap-debugger-the-full-story-2jhh) | Reading raw logs instead of the UI — where the merge was creating findings that never existed |
 
 ---
 
@@ -462,6 +461,10 @@ python extract.py    # Validates extraction against a sample
 python detect.py     # Validates detection against a hand-built extraction
 python cedar_gate.py # Prints policy decisions for sample findings
 ```
+
+---
+
+> ## _Built with Claude and DeepSeek as coding partners._
 
 ---
 
